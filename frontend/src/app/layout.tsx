@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import { DM_Sans } from "next/font/google";
+import { NextAuthProvider } from "@/components/session-provider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -11,8 +12,11 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Money Tracker",
+  title: "Cateeet",
   description: "Personal finance tracker",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -29,7 +33,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <NextAuthProvider>{children}</NextAuthProvider>
         </ThemeProvider>
       </body>
     </html>

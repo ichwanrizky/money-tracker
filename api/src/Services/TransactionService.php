@@ -22,17 +22,17 @@ class TransactionService
             return ['success' => false, 'message' => "Wallet '{$trx['wallet']}' tidak ditemukan."];
         }
 
-        // Begin transaction
+        $is_transfer = (int) ($trx['is_transfer'] ?? 0);
+
         $this->db->begin_transaction();
 
         try {
-            // Insert transaksi
             $stmt = $this->db->prepare("
-                INSERT INTO transactions (user_id, wallet_id, category_id, description, amount, type, date, raw_text)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO transactions (user_id, wallet_id, category_id, description, amount, type, date, raw_text, is_transfer)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
             $stmt->bind_param(
-                'iiisdsss',
+                'iiisdsssi',
                 $userId,
                 $wallet['id'],
                 $categoryId,
@@ -40,11 +40,11 @@ class TransactionService
                 $trx['amount'],
                 $trx['type'],
                 $trx['date'],
-                $trx['raw']
+                $trx['raw'],
+                $is_transfer
             );
             $stmt->execute();
 
-            // Update saldo wallet
             if ($trx['type'] === 'in') {
                 $sql = "UPDATE wallets SET current_balance = current_balance + ? WHERE id = ?";
             } else {

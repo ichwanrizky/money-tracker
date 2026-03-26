@@ -23,7 +23,7 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          const res = await fetch(`${process.env.API_URL}/api/v1/auth/login`, {
+          const res = await fetch(`${process.env.API_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -36,10 +36,11 @@ export const authOptions = {
 
           if (res.ok && data.success) {
             return {
-              id: data.data.user.id,
-              name: data.data.user.display_name,
-              username: data.data.user.username,
-              token: data.data.token,
+              id: data.data.id,
+              name: data.data.display_name,
+              username: data.data.username,
+              email: data.data.email,
+              jwt: data.data.jwt,
             };
           }
 
@@ -55,7 +56,8 @@ export const authOptions = {
       if (user) {
         token.id = user.id;
         token.username = user.username;
-        token.token = user.token;
+        token.email = user.email ?? "";
+        token.jwt = user.jwt;
       }
       return token;
     },
@@ -63,7 +65,8 @@ export const authOptions = {
       if (session.user) {
         session.user.id = token.id;
         session.user.username = token.username;
-        session.user.token = token.token;
+        session.user.email = token.email;
+        session.user.jwt = token.jwt;
       }
       return session;
     },
@@ -73,6 +76,7 @@ export const authOptions = {
   },
   session: {
     strategy: "jwt" as const,
+    maxAge: 60 * 60, // 1 jam
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

@@ -11,7 +11,7 @@ const handler = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const res = await fetch(`${process.env.API_URL}/api/v1/auth/login`, {
+          const res = await fetch(`${process.env.API_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -24,10 +24,11 @@ const handler = NextAuth({
 
           if (res.ok && data.success) {
             return {
-              id: data.data.user.id,
-              name: data.data.user.display_name,
-              username: data.data.user.username,
-              token: data.data.token,
+              id: data.data.id,
+              name: data.data.display_name,
+              username: data.data.username,
+              email: data.data.email,
+              jwt: data.data.jwt,
             };
           }
 
@@ -43,18 +44,22 @@ const handler = NextAuth({
       if (user) {
         token.id = user.id;
         token.username = user.username;
-        token.token = user.token;
+        token.email = user.email;
+        token.jwt = user.jwt;
       }
       return token;
     },
-
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.username = token.username as string;
-        session.user.token = token.token as string;
+        session.user.email = token.email as string;
+        session.user.jwt = token.jwt as string;
       }
       return session;
+    },
+    async redirect({ baseUrl }) {
+      return `${baseUrl}/transactions`;
     },
   },
   pages: {

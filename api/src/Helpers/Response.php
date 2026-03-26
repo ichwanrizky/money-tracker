@@ -25,6 +25,14 @@ class Response
         ], $status);
     }
 
+    public static function message(ResponseInterface $response, string $message, int $status = 200): ResponseInterface
+    {
+        return self::json($response, [
+            'success' => true,
+            'message' => $message,
+        ], $status);
+    }
+
     public static function error(ResponseInterface $response, string $message, int $status = 400, mixed $errors = null): ResponseInterface
     {
         return self::json($response, [

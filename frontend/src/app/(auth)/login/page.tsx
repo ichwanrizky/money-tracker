@@ -38,7 +38,7 @@ export default function LoginPage() {
     if (res?.error) {
       setError("Username atau password salah.");
     } else {
-      router.push("/dashboard");
+      router.push("/transactions");
     }
   };
 
@@ -54,10 +54,10 @@ export default function LoginPage() {
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center space-y-1">
             <h1 className="text-3xl font-semibold tracking-tight">
-              💸 Money Tracker
+              💸 Cateeet
             </h1>
             <p className="text-sm text-muted-foreground">
-              Catat pengeluaran, kendalikan keuangan
+              Cateeeet, biar gak lupa!
             </p>
           </div>
 
@@ -105,6 +105,14 @@ export default function LoginPage() {
                     Daftar sekarang
                   </a>
                 </p>
+                <p className="text-center text-sm text-muted-foreground">
+                  <a
+                    href="/tutorial_public"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Lihat cara penggunaan bot
+                  </a>
+                </p>
               </form>
             </CardContent>
           </Card>
@@ -113,9 +121,8 @@ export default function LoginPage() {
 
       {/* Footer */}
       <div className="py-4 text-center text-xs text-muted-foreground">
-        Developed by{" "}
-        <span className="font-medium text-foreground">Ichwan Rizky</span> ·{" "}
-        {new Date().getFullYear()}
+        Developed by <span className="font-medium text-foreground">Waaang</span>{" "}
+        · {new Date().getFullYear()}
       </div>
     </div>
   );

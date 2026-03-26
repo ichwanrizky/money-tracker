@@ -39,7 +39,16 @@ class TelegramController
 
         $user = $this->getUserByTelegramId($chatId);
         if (!$user) {
-            $this->sendMessage($chatId, "Akun kamu belum terdaftar. Hubungi admin.");
+            $this->sendMessage($chatId,
+                "👋 Halo! Kamu belum terdaftar di Cateeeet.\n\n" .
+                "Cara daftar:\n" .
+                "1. Buka aplikasi web Cateeeet\n" .
+                "2. Daftar akun baru\n" .
+                "3. Masuk ke menu *Telegram*\n" .
+                "4. Masukkan Telegram ID kamu: `{$chatId}`\n\n" .
+                "Telegram ID kamu: *{$chatId}*\n\n" .
+                "Ketik /start untuk info lebih lanjut."
+            );
             $response->getBody()->write(json_encode(['ok' => true]));
             return $response->withHeader('Content-Type', 'application/json');
         }
@@ -58,14 +67,43 @@ class TelegramController
         $parsed  = $parser->parse($text);
 
         if (empty($parsed)) {
-            $this->sendMessage($chatId, "Format tidak dikenali. Contoh:\n\n11/3\nmakan siang 30rb - bni\ngaji 5jt + bsi");
+            $this->sendMessage($chatId, "❓ Format tidak dikenali.\n\n" .
+                "📌 Contoh transaksi:\n" .
+                "11/3\n" .
+                "makan siang 30 - bni\n" .
+                "gaji 5jt + bsi\n\n" .
+                "🔄 Format transfer:\n" .
+                "tf 50rb bni ke cash\n" .
+                "tf 50rb bni - cash\n" .
+                "tf 50rb bni cash\n" .
+                "tf 50rb bni ke cash 2500\n\n" .
+                "💡 Format nominal:\n" .
+                "30 → Rp 30.000\n" .
+                "30rb / 30k → Rp 30.000\n" .
+                "5jt → Rp 5.000.000\n" .
+                "500perak → Rp 500\n\n" .
+                "⌨️ Command:\n" .
+                "/saldo — cek semua saldo wallet\n" .
+                "/hari — transaksi hari ini\n" .
+                "/hari 26/3/2026 — transaksi tanggal tertentu"
+            );
+            
         } else {
             $reply = "✅ Transaksi tersimpan:\n\n";
             foreach ($parsed as $trx) {
-                $category = $matcher->match($userId, $trx['description'], $trx['type']);
-                $result   = $saver->save($userId, $trx, $category['id']);
-                $type     = $trx['type'] === 'in' ? '💰 Masuk' : '💸 Keluar';
-                $amount   = number_format((float) $trx['amount'], 0, ',', '.');
+                // Kategorisasi
+                if ($trx['is_transfer']) {
+                    $categoryId = $this->getOrCreateTransferCategory($userId);
+                    $categoryName = 'Transfer';
+                } else {
+                    $category     = $matcher->match($userId, $trx['description'], $trx['type']);
+                    $categoryId   = $category['id'];
+                    $categoryName = $category['name'];
+                }
+
+                $result = $saver->save($userId, $trx, $categoryId);
+                $type   = $trx['type'] === 'in' ? '💰 Masuk' : '💸 Keluar';
+                $amount = number_format((float) $trx['amount'], 0, ',', '.');
 
                 if ($result['success']) {
                     $balance = number_format((float) $result['balance'], 0, ',', '.');
@@ -75,7 +113,7 @@ class TelegramController
 
                     $reply .= "{$type} Rp {$amount}\n";
                     $reply .= "📝 {$trx['description']}\n";
-                    $reply .= "🏷️ {$category['name']}\n";
+                    $reply .= "🏷️ {$categoryName}\n";
                     $reply .= "👛 {$result['wallet']} (saldo: Rp {$balance})\n";
                     $reply .= "📅 {$tgl}\n\n";
                 } else {
@@ -87,6 +125,27 @@ class TelegramController
 
         $response->getBody()->write(json_encode(['ok' => true]));
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    private function getOrCreateTransferCategory(int $userId): int
+    {
+        $stmt = $this->db->prepare("
+            SELECT id FROM categories 
+            WHERE user_id = ? AND LOWER(name) = 'transfer' 
+            LIMIT 1
+        ");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $cat = $stmt->get_result()->fetch_assoc();
+
+        if ($cat) return (int) $cat['id'];
+
+        $stmt = $this->db->prepare("
+            INSERT INTO categories (user_id, name, icon, type) VALUES (?, 'Transfer', '🔄', 'both')
+        ");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        return $this->db->insert_id;
     }
 
     private function sendMessage(int|string $chatId, string $text): void
@@ -123,6 +182,41 @@ class TelegramController
         $command = strtolower($parts[0]);
 
         switch ($command) {
+            case '/start':
+                $this->sendMessage($chatId,
+                    "👋 Halo! Selamat datang di *Cateeeet* 💸\n\n" .
+                    "Bot ini membantu kamu catat keuangan harian langsung dari Telegram.\n\n" .
+                    "Untuk mulai, kamu perlu:\n" .
+                    "1. Daftar akun di web\n" .
+                    "2. Hubungkan Telegram ID kamu di menu Telegram\n\n" .
+                    "Sudah punya akun? Langsung catat transaksi!\n\n" .
+                    "Contoh:\n" .
+                    "makan siang 30 - bni\n" .
+                    "gaji 5jt + bsi\n\n" .
+                    "Ketik /help untuk bantuan lebih lanjut."
+                );
+                break;
+
+            case '/help':
+                $this->sendMessage($chatId,
+                    "📖 *Panduan Cateeeet*\n\n" .
+                    "💬 Format transaksi:\n" .
+                    "makan siang 30 - bni\n" .
+                    "gaji 5jt + bsi\n\n" .
+                    "🔄 Format transfer:\n" .
+                    "tf 50rb bni ke cash\n" .
+                    "tf 50rb bni cash 2500\n\n" .
+                    "💡 Format nominal:\n" .
+                    "30 → Rp 30.000\n" .
+                    "30rb / 30k → Rp 30.000\n" .
+                    "5jt → Rp 5.000.000\n\n" .
+                    "⌨️ Command:\n" .
+                    "/saldo — cek semua saldo wallet\n" .
+                    "/hari — transaksi hari ini\n" .
+                    "/hari 26/3/2026 — transaksi tanggal tertentu"
+                );
+                break;
+            
             case '/saldo':
                 $this->sendMessage($chatId, $this->getSaldoText($userId));
                 break;
@@ -141,7 +235,19 @@ class TelegramController
                 break;
 
             default:
-                $this->sendMessage($chatId, "Command tidak dikenal.\n\nCommand yang tersedia:\n/saldo — lihat semua saldo wallet\n/hari — transaksi hari ini\n/hari 25/3/2026 — transaksi tanggal tertentu");        }
+                $this->sendMessage($chatId, "❓ Command tidak dikenal.\n\n" .
+                    "⌨️ Command yang tersedia:\n" .
+                    "/saldo — cek semua saldo wallet\n" .
+                    "/hari — transaksi hari ini\n" .
+                    "/hari 26/3/2026 — transaksi tanggal tertentu\n\n" .
+                    "💬 Format transaksi:\n" .
+                    "makan siang 30 - bni\n" .
+                    "gaji 5jt + bsi\n\n" .
+                    "🔄 Format transfer:\n" .
+                    "tf 50rb bni ke cash\n" .
+                    "tf 50rb bni cash 2500"
+                );
+            }
     }
 
     private function getSaldoText(int $userId): string
@@ -175,7 +281,7 @@ class TelegramController
     private function getTransaksiHariText(int $userId, string $date): string
     {
         $stmt = $this->db->prepare("
-            SELECT t.description, t.amount, t.type, t.date, t.created_at,
+            SELECT t.description, t.amount, t.type, t.date, t.created_at, t.is_transfer,
                 w.name as wallet_name,
                 c.name as category_name,
                 u.display_name as input_by
@@ -201,7 +307,7 @@ class TelegramController
         $stmt->execute();
         $result = $stmt->get_result();
 
-        $days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        $days      = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         $dayName   = $days[date('w', strtotime($date))];
         $dateLabel = $dayName . ', ' . date('d/m/Y', strtotime($date));
         $text      = "📅 Transaksi {$dateLabel}\n";
@@ -213,8 +319,10 @@ class TelegramController
 
         while ($row = $result->fetch_assoc()) {
             $rows[] = $row;
-            if ($row['type'] === 'in') $totalIn  += (float) $row['amount'];
-            else                       $totalOut += (float) $row['amount'];
+            if ((int) $row['is_transfer'] === 0) {
+                if ($row['type'] === 'in') $totalIn  += (float) $row['amount'];
+                else                       $totalOut += (float) $row['amount'];
+            }
         }
 
         if (empty($rows)) {
@@ -222,15 +330,14 @@ class TelegramController
         }
 
         foreach ($rows as $row) {
-            $icon      = $row['type'] === 'in' ? '💰' : '💸';
-            $amount    = number_format((float) $row['amount'], 0, ',', '.');
-            $time      = date('H:i:s', strtotime($row['created_at']));
+            $icon       = $row['type'] === 'in' ? '💰' : '💸';
+            $amount     = number_format((float) $row['amount'], 0, ',', '.');
+            $time       = date('H:i:s', strtotime($row['created_at']));
+            $transferTag = (int) $row['is_transfer'] === 1 ? ' 🔄' : '';
 
-            $inputBy   = $row['input_by'];
-
-            $text .= "{$icon} {$row['description']} — Rp {$amount}\n";
+            $text .= "{$icon} {$row['description']}{$transferTag} — Rp {$amount}\n";
             $text .= "   🏷️ {$row['category_name']} | 👛 {$row['wallet_name']}\n";
-            $text .= "   👤 {$inputBy} • 🕐 {$time}\n\n";
+            $text .= "   👤 {$row['input_by']} • 🕐 {$time}\n\n";
         }
 
         $text .= str_repeat("─", 20) . "\n";

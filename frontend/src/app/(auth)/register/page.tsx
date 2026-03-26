@@ -68,7 +68,7 @@ export default function RegisterPage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/register`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -76,6 +76,7 @@ export default function RegisterPage() {
             username: form.username,
             display_name: form.display_name,
             password: form.password,
+            email: form.email,
           }),
         },
       );
@@ -87,7 +88,7 @@ export default function RegisterPage() {
       } else {
         setError(data.message || "Registrasi gagal.");
       }
-    } catch {
+    } catch (error) {
       setError("Terjadi kesalahan. Coba lagi.");
     } finally {
       setLoading(false);
@@ -104,10 +105,10 @@ export default function RegisterPage() {
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center space-y-1">
             <h1 className="text-3xl font-semibold tracking-tight">
-              💸 Money Tracker
+              💸 Cateeet
             </h1>
             <p className="text-sm text-muted-foreground">
-              Catat pengeluaran, kendalikan keuangan
+              Cateeeet, biar gak lupa!
             </p>
           </div>
 
@@ -205,9 +206,8 @@ export default function RegisterPage() {
       </div>
 
       <div className="py-4 text-center text-xs text-muted-foreground">
-        Developed by{" "}
-        <span className="font-medium text-foreground">Ichwan Rizky</span> ·{" "}
-        {new Date().getFullYear()}
+        Developed by <span className="font-medium text-foreground">Waaang</span>{" "}
+        · {new Date().getFullYear()}
       </div>
     </div>
   );

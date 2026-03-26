@@ -1,0 +1,270 @@
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+const steps = [
+  {
+    number: 1,
+    title: "Cari bot di Telegram",
+    description:
+      "Buka Telegram dan cari @MoneyTrackerWanBot di kolom pencarian.",
+    image: "/tutorial_bot/1.jpeg",
+  },
+  {
+    number: 2,
+    title: "Buka chat bot",
+    description:
+      "Tap pada bot yang muncul di hasil pencarian, lalu tap tombol Start untuk memulai.",
+    image: "/tutorial_bot/2.jpeg",
+  },
+  {
+    number: 3,
+    title: "Daftar & hubungkan akun",
+    description:
+      "Daftar di aplikasi web ini, lalu update Telegram ID kamu di menu Telegram. Setelah terhubung, bot akan mengenali akunmu.",
+    image: "/tutorial_bot/3.jpeg",
+    note: "Sebelum Telegram ID terhubung, bot akan membalas 'Akun kamu belum terdaftar'.",
+  },
+  {
+    number: 4,
+    title: "Catat pemasukan",
+    description:
+      "Kirim pesan dengan format: deskripsi jumlah + wallet. Contoh: freelance 500rb + bni",
+    image: "/tutorial_bot/5.jpeg",
+    code: "freelance 500rb + bni",
+  },
+  {
+    number: 5,
+    title: "Catat pengeluaran",
+    description:
+      "Format sama tapi gunakan tanda minus (-). Contoh: bensin 30 - bni",
+    image: "/tutorial_bot/6.jpeg",
+    code: "bensin 30 - bni",
+    note: "Angka tanpa satuan otomatis dikalikan 1.000. Jadi 30 = Rp 30.000",
+  },
+  {
+    number: 6,
+    title: "Transfer antar wallet — format ke",
+    description:
+      "Gunakan tf atau transfer dengan pemisah ke. Contoh: tf 10 bni - cash",
+    image: "/tutorial_bot/9.jpeg",
+    code: "tf 10 bni - cash\ntf 10rb bni ke cash",
+  },
+  {
+    number: 7,
+    title: "Transfer antar wallet — format spasi",
+    description: "Bisa juga tanpa pemisah, langsung nama wallet tujuan.",
+    image: "/tutorial_bot/10.jpeg",
+    code: "tf 10rb bni cash",
+  },
+  {
+    number: 8,
+    title: "Transfer dengan biaya admin",
+    description:
+      "Tambahkan biaya admin di akhir pesan. Angka biaya admin ditulis literal.",
+    image: "/tutorial_bot/11.jpeg",
+    code: "tf 50 bni cash 2500",
+    note: "2500 = Rp 2.500 (bukan Rp 2.500.000). Biaya admin dipotong dari wallet asal.",
+  },
+  {
+    number: 9,
+    title: "Cek transaksi harian",
+    description:
+      "Kirim /hari untuk melihat semua transaksi hari ini. Transaksi transfer ditandai 🔄 dan tidak dihitung di total.",
+    image: "/tutorial_bot/7.jpeg",
+    code: "/hari\n/hari 25/3/2026",
+  },
+  {
+    number: 10,
+    title: "Cek saldo wallet",
+    description:
+      "Kirim /saldo untuk melihat saldo semua wallet kamu beserta total keseluruhan.",
+    image: "/tutorial_bot/8.jpeg",
+    code: "/saldo",
+  },
+];
+
+const formats = [
+  { input: "30", result: "Rp 30.000" },
+  { input: "30rb", result: "Rp 30.000" },
+  { input: "30k", result: "Rp 30.000" },
+  { input: "30.5", result: "Rp 30.500" },
+  { input: "5jt", result: "Rp 5.000.000" },
+  { input: "500perak", result: "Rp 500" },
+  { input: "30600", result: "Rp 30.600" },
+];
+
+export default function TutorialPage() {
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold">Tutorial Penggunaan Bot</h1>
+        <p className="text-sm text-muted-foreground">
+          Panduan lengkap cara menggunakan Money Tracker via Telegram
+        </p>
+      </div>
+
+      {/* Format amount */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">📊 Format Nominal</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {formats.map((f) => (
+              <div
+                key={f.input}
+                className="rounded-md border bg-muted/50 px-3 py-2 text-center"
+              >
+                <p className="font-mono font-medium text-sm">{f.input}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {f.result}
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Format transaksi */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">💬 Format Pesan Transaksi</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="rounded-md bg-muted px-4 py-3 font-mono text-sm space-y-1">
+            <p className="text-muted-foreground"># Dengan tanggal</p>
+            <p>26/3</p>
+            <p>makan siang 30 - bni</p>
+            <p>gaji 5jt + bsi</p>
+          </div>
+          <div className="rounded-md bg-muted px-4 py-3 font-mono text-sm space-y-1">
+            <p className="text-muted-foreground">
+              # Tanpa tanggal (default hari ini)
+            </p>
+            <p>bensin 30 - cash</p>
+            <p>freelance 500rb + bni</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="rounded-md border px-3 py-2">
+              <p className="font-medium mb-1">Pengeluaran</p>
+              <p className="font-mono text-muted-foreground">
+                deskripsi jumlah - wallet
+              </p>
+            </div>
+            <div className="rounded-md border px-3 py-2">
+              <p className="font-medium mb-1">Pemasukan</p>
+              <p className="font-mono text-muted-foreground">
+                deskripsi jumlah + wallet
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Steps */}
+      <div className="space-y-6">
+        {steps.map((step) => (
+          <Card key={step.number}>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                  {step.number}
+                </span>
+                {step.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    {step.description}
+                  </p>
+                  {step.code && (
+                    <div className="rounded-md bg-muted px-4 py-3 font-mono text-sm whitespace-pre">
+                      {step.code}
+                    </div>
+                  )}
+                  {step.note && (
+                    <div className="flex gap-2 rounded-md bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+                      <span className="text-amber-500 shrink-0">💡</span>
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        {step.note}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-center md:justify-end">
+                  <button
+                    onClick={() => setLightbox(step.image)}
+                    className="relative w-48 overflow-hidden rounded-2xl border shadow-sm hover:opacity-90 transition-opacity cursor-zoom-in"
+                  >
+                    <Image
+                      src={step.image}
+                      alt={step.title}
+                      width={300}
+                      height={600}
+                      className="w-full h-auto object-cover"
+                    />
+                  </button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Commands */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">⌨️ Daftar Command</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {[
+              { cmd: "/saldo", desc: "Lihat semua saldo wallet" },
+              { cmd: "/hari", desc: "Transaksi hari ini" },
+              { cmd: "/hari 26/3/2026", desc: "Transaksi tanggal tertentu" },
+            ].map((c) => (
+              <div
+                key={c.cmd}
+                className="flex items-center gap-3 rounded-md border px-4 py-2"
+              >
+                <Badge variant="secondary" className="font-mono shrink-0">
+                  {c.cmd}
+                </Badge>
+                <p className="text-sm text-muted-foreground">{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <div className="relative max-w-sm w-full">
+            <Image
+              src={lightbox}
+              alt="Preview"
+              width={400}
+              height={800}
+              className="w-full h-auto rounded-2xl"
+            />
+            <p className="text-center text-xs text-white/60 mt-2">
+              Tap di mana saja untuk menutup
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
