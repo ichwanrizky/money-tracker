@@ -126,7 +126,7 @@ class WalletController
                         INSERT INTO transactions (user_id, wallet_id, category_id, description, amount, type, date, is_transfer, is_balancing)
                         VALUES (?, ?, NULL, 'Balancing', ?, ?, CURDATE(), 0, 1)
                     ");
-                    $stmt->bind_param('iids', $userId, $wallet_id, $diffAmount, $diffType);
+                    $stmt->bind_param('iids', $userId, $id, $amount, $type);
                     $stmt->execute();
 
                     $stmt = $this->db->prepare("UPDATE wallets SET current_balance = ? WHERE id = ?");
