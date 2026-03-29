@@ -34,7 +34,7 @@ class CategoryController
               AND c.shared_to_family = 1
               AND fm1.kicked_at IS NULL
               AND fm2.kicked_at IS NULL
-            ORDER BY name
+            ORDER BY type, name
         ");
         $stmt->bind_param('ii', $userId, $userId);
         $stmt->execute();
