@@ -138,6 +138,7 @@ export function TransferForm({ open, onClose, onSuccess }: Props) {
             wallet_id: parseInt(form.to_wallet_id),
             category_id: null,
             date: form.date,
+            is_transfer: true,
           }),
         },
       );

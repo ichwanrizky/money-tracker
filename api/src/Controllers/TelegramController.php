@@ -78,7 +78,8 @@ class TelegramController
                 "coffee 50 - bni #jajan\n\n" .
                 "🔄 Format transfer:\n" .
                 "tf 50rb bni ke cash\n" .
-                "tf 50rb bni cash 2500\n\n" .
+                "tf 50rb bni - cash\n" .
+                "tf 50rb bni ke cash 2500  ← dengan biaya admin\n\n" .
                 "💡 Format nominal:\n" .
                 "30 → Rp 30.000\n" .
                 "30rb / 30k → Rp 30.000\n" .
@@ -227,8 +228,7 @@ class TelegramController
                     "🔄 Format transfer:\n" .
                     "tf 50rb bni ke cash\n" .
                     "tf 50rb bni - cash\n" .
-                    "tf 50rb bni cash\n" .
-                    "tf 50rb bni cash 2500  ← dengan biaya admin\n\n" .
+                    "tf 50rb bni ke cash 2500  ← dengan biaya admin\n\n" .
                     "📅 Format tanggal:\n" .
                     "26/3\n" .
                     "makan siang 30 - bni\n" .
@@ -286,7 +286,8 @@ class TelegramController
                     "coffee 50 - bni #jajan\n\n" .
                     "🔄 Format transfer:\n" .
                     "tf 50rb bni ke cash\n" .
-                    "tf 50rb bni cash 2500"
+                    "tf 50rb bni - cash\n" .
+                    "tf 50rb bni ke cash 2500  ← dengan biaya admin\n\n" .
                 );
         }
     }

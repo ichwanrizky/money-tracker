@@ -24,7 +24,7 @@ class TransactionParser
             }
 
             // Cek transfer: "transfer 500rb bni ke cash" atau "tf 500rb bni ke cash"
-            if (preg_match('/^(?:transfer|tf)\s+([\d.,]+(?:rb|k|jt|m|perak)?)\s+(\w+)(?:\s+(?:ke|-|→)\s+|\s+)(\w+)(?:\s+([\d.,]+(?:rb|k|jt|m|perak)?))?$/i', $line, $m)) {
+            if (preg_match( '/^(?:transfer|tf)\s+([\d.,]+(?:rb|k|jt|m|perak)?)\s+([\w][\w\s]*?)\s+(?:ke|-)\s+([\w][\w\s]*?)(?:\s+([\d.,]+(?:rb|k|jt|m|perak)?))?$/i', $line, $m )) {
 
                 $amount   = $this->parseAmount($m[1]);
                 $from     = strtolower(trim($m[2]));
